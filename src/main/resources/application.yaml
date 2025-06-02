@@ -3,7 +3,7 @@ server:
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/eventhub_db
+    url: jdbc:postgresql://localhost:5432/cdauth_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -17,7 +17,7 @@ spring:
           dialect: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
-    url: jdbc:postgresql://localhost:5432/eventhub_db
+    url: jdbc:postgresql://localhost:5432/cdauth_db
     user: postgres
     password: postgres
 
