@@ -8,6 +8,8 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class UserServiceImpl implements UserService {
 
@@ -23,23 +25,28 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public String register(User user) {
+    public String register(User user, String deviceId) {
 
         if (userRepository.existsByEmail(user.getEmail())) {
             // TODO: Mudar para custom exception
             throw new RuntimeException("This e-mail is already been taken");
         }
 
+        user.setCreatedAt(LocalDateTime.now());
+        user.setLastLogin(LocalDateTime.now());
+
         userRepository.save(user);
-        return jwtService.generateToken(user);
+        return jwtService.generateToken(user, user.getId(), deviceId);
     }
 
     @Override
-    public String authentication(String email, String password) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-
+    public String authentication(String email, String password, String device) {
         // TODO: Mudar para custom exception
         var user = userRepository.findByEmail(email).orElseThrow();
-        return jwtService.generateToken(user);
+
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+
+        return jwtService.generateToken(user, user.getId(), device);
     }
+
 }
