@@ -1,5 +1,7 @@
 package br.com.lwbaleeiro.cdauth.config;
 
+import br.com.lwbaleeiro.cdauth.repository.DeviceRepository;
+import br.com.lwbaleeiro.cdauth.service.DeviceService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final DeviceService deviceService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -51,6 +54,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                String deviceId = jwtService.extractDeviceId(jwt);
+                deviceService.updateLastUsedAt(deviceId, userEmail);
             }
         }
         filterChain.doFilter(request, response);

@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -28,7 +29,7 @@ public class Device {
     private String deviceName;
 
     @Column
-    private LocalDateTime lastUsedAt;
+    private Instant lastUsedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")

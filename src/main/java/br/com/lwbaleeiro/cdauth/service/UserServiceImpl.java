@@ -2,7 +2,6 @@ package br.com.lwbaleeiro.cdauth.service;
 
 import br.com.lwbaleeiro.cdauth.config.JwtService;
 import br.com.lwbaleeiro.cdauth.entity.User;
-import br.com.lwbaleeiro.cdauth.repository.DeviceRepository;
 import br.com.lwbaleeiro.cdauth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,23 +40,27 @@ public class UserServiceImpl implements UserService {
 
         userRepository.save(user);
 
-        if (deviceService.exists(deviceId, user)) {
-            deviceService.update(deviceId, user);
-        } else {
-            deviceService.create(deviceId, deviceName, user);
-        }
+        createOrUpdateDevice(deviceId, deviceName, user);
 
         return jwtService.generateToken(user, user.getId(), deviceId);
     }
 
     @Override
-    public String authentication(String email, String password, String device) {
+    public String authentication(String email, String password, String deviceId, String deviceName) {
         // TODO: Mudar para custom exception
         var user = userRepository.findByEmail(email).orElseThrow();
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        createOrUpdateDevice(deviceId, deviceName, user);
+        return jwtService.generateToken(user, user.getId(), deviceId);
+    }
 
-        return jwtService.generateToken(user, user.getId(), device);
+    private void createOrUpdateDevice(String deviceId, String deviceName, User user) {
+        if (deviceService.exists(deviceId, user)) {
+            deviceService.update(deviceId, user);
+        } else {
+            deviceService.create(deviceId, deviceName, user);
+        }
     }
 
 }

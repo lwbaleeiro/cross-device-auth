@@ -3,33 +3,44 @@ package br.com.lwbaleeiro.cdauth.service;
 import br.com.lwbaleeiro.cdauth.entity.Device;
 import br.com.lwbaleeiro.cdauth.entity.User;
 import br.com.lwbaleeiro.cdauth.repository.DeviceRepository;
+import br.com.lwbaleeiro.cdauth.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
+@Slf4j
 public class DeviceServiceImpl implements DeviceService {
 
     private final DeviceRepository deviceRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public DeviceServiceImpl(DeviceRepository deviceRepository) {
+    public DeviceServiceImpl(DeviceRepository deviceRepository, UserRepository userRepository) {
         this.deviceRepository = deviceRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public boolean exists(String id, User user) {
-        return deviceRepository.findByDeviceIdAndUser(id, user).isPresent();
+
+        Optional<Device> device = deviceRepository.findByDeviceIdAndUser(id, user);
+
+        return device.isPresent() && device.get().isActive();
     }
 
     @Override
     public Device update(String id, User user) {
 
         Device device = deviceRepository.findByDeviceIdAndUser(id, user).orElseThrow(
-                () -> new RuntimeException("No device found for this Id and User."));
+                () -> new EntityNotFoundException("No device found for this Id and User."));
 
-        device.setLastUsedAt(LocalDateTime.now());
+        device.setLastUsedAt(Instant.now());
         device.setActive(true);
 
         return deviceRepository.save(device);
@@ -48,9 +59,22 @@ public class DeviceServiceImpl implements DeviceService {
                 .deviceId(id)
                 .active(true)
                 .user(user)
-                .lastUsedAt(LocalDateTime.now())
+                .lastUsedAt(Instant.now())
                 .build();
 
         return deviceRepository.save(device);
+    }
+
+    @Override
+    public void updateLastUsedAt(String deviceId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail).orElseThrow(
+                () -> new EntityNotFoundException("User not found by given e-mail."));
+
+        Device device = deviceRepository.findByDeviceIdAndUser(deviceId, user).orElseThrow(
+                () -> new EntityNotFoundException("No device found for this Id and User."));
+
+        device.setLastUsedAt(Instant.now());
+        deviceRepository.save(device);
+        log.debug("Updating lastUsedAt for deviceId: {} and user: {}", deviceId, userEmail);
     }
 }
