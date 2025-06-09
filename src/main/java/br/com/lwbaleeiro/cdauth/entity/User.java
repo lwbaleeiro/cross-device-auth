@@ -35,7 +35,7 @@ public class User implements UserDetails {
     private String name;
 
     @Column(nullable = false)
-    private boolean enabled = true;
+    private boolean enabled;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

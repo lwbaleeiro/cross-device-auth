@@ -26,10 +26,11 @@ public class AuthController {
 
         User user = User.builder()
                 .email(request.email())
+                .name(request.name())
                 .password(passwordEncoder.encode(request.password()))
                 .build();
 
-        String token = userService.register(user, request.deviceId());
+        String token = userService.register(user, request.deviceId(), request.deviceName());
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
