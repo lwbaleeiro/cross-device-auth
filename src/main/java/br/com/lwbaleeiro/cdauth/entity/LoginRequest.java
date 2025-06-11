@@ -14,26 +14,29 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "devices")
-public class Device {
+@Table(name = "login_request")
+public class LoginRequest {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
-    private String deviceId;
+    @Column(nullable = false)
+    private String deviceIdRequester;
+
+    @Column(nullable = false)
+    private LoginRequestStatus status;
 
     @Column
-    private String deviceName;
+    private Instant createdAt;
 
     @Column
-    private Instant lastUsedAt;
+    private Instant expiresAt;
+
+    @Column
+    private String deviceIdApprove;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-
-    @Column
-    private boolean active = true;
 }

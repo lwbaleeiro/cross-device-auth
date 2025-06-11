@@ -2,7 +2,6 @@ package br.com.lwbaleeiro.cdauth.service;
 
 import br.com.lwbaleeiro.cdauth.entity.Device;
 import br.com.lwbaleeiro.cdauth.entity.User;
-import org.springframework.security.core.userdetails.UserDetails;
 
 public interface DeviceService {
     boolean exists(String id, User user);
