@@ -29,7 +29,8 @@ public class LoginRequestController {
         LoginRequest loginRequest = loginRequestService.create(request.deviceIdRequester(), request.deviceNameRequester());
 
         return ResponseEntity.ok(new LoginRequestResponse(
-                loginRequest.getId(), loginRequest.getStatus(),
+                loginRequest.getId(),
+                loginRequest.getStatus(),
                 null));
     }
 
@@ -37,7 +38,8 @@ public class LoginRequestController {
     public ResponseEntity<LoginRequestResponse> loginStatus(@PathVariable("id") String id) {
 
         LoginRequest loginRequest = loginRequestService.getLoginStatus(UUID.fromString(id));
-        return ResponseEntity.ok(new LoginRequestResponse(loginRequest.getId(),
+        return ResponseEntity.ok(new LoginRequestResponse(
+                loginRequest.getId(),
                 loginRequest.getStatus(),
                 null));
     }
@@ -54,7 +56,8 @@ public class LoginRequestController {
                 loginRequest.getUser().getId(),
                 loginRequest.getDeviceIdRequester());
         
-        return ResponseEntity.ok(new LoginRequestResponse(loginRequest.getId(),
+        return ResponseEntity.ok(new LoginRequestResponse(
+                loginRequest.getId(),
                 loginRequest.getStatus(),
                 authToken));
     }
@@ -67,7 +70,8 @@ public class LoginRequestController {
         String deviceIdReject = authenticatedUserContext.getDeviceId(request);
 
         LoginRequest loginRequest = loginRequestService.loginReject(UUID.fromString(id), deviceIdReject, user);
-        return ResponseEntity.ok(new LoginRequestResponse(loginRequest.getId(),
+        return ResponseEntity.ok(new LoginRequestResponse(
+                loginRequest.getId(),
                 loginRequest.getStatus(),
                 null));
     }
