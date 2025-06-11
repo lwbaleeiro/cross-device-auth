@@ -15,18 +15,21 @@ import java.util.UUID;
 public class LoginRequestServiceImpl implements LoginRequestService {
 
     private final LoginRequestRepository loginRequestRepository;
+    private final DeviceService deviceService;
 
     @Autowired
-    public LoginRequestServiceImpl(LoginRequestRepository loginRequestRepository) {
+    public LoginRequestServiceImpl(LoginRequestRepository loginRequestRepository, DeviceService deviceService) {
         this.loginRequestRepository = loginRequestRepository;
+        this.deviceService = deviceService;
     }
 
     @Override
-    public LoginRequest create(String deviceIdRequester) {
+    public LoginRequest create(String deviceIdRequester, String deviceNameRequester) {
 
         LoginRequest loginRequest = LoginRequest
                 .builder()
                 .deviceIdRequester(deviceIdRequester)
+                .deviceNameRequester(deviceNameRequester)
                 .createdAt(Instant.now())
                 .status(LoginRequestStatus.PENDING)
                 .build();
@@ -48,9 +51,17 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         loginRequest.setDeviceIdApprove(deviceIdApprove);
         loginRequest.setUser(user);
         loginRequest.setStatus(LoginRequestStatus.APPROVED);
-        //loginRequest.setExpiresAt(); //TODO: Implementar depois
 
-        // TODO: Salvar novo dispositivo aprovado no Devices do User.
+        /* TODO: Implementar depois
+        * Setar quando vai expirar ? loginRequest.setExpiresAt();
+        * Adicionar validações como:
+        * - Se um LoginRequest já foi aprovado/reprovado nõo poderá ser atualizado novamente.
+        * - Precisa gerar um novo LoginRequest
+        * */
+
+       deviceService.create(loginRequest.getDeviceIdRequester(),
+               loginRequest.getDeviceNameRequester(),
+               user);
 
         return loginRequestRepository.save(loginRequest);
     }

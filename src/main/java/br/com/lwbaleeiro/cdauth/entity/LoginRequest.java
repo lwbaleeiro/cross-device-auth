@@ -24,6 +24,9 @@ public class LoginRequest {
     @Column(nullable = false)
     private String deviceIdRequester;
 
+    @Column
+    private String deviceNameRequester;
+
     @Column(nullable = false)
     private LoginRequestStatus status;
 

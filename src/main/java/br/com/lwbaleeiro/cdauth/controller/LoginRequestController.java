@@ -1,5 +1,6 @@
 package br.com.lwbaleeiro.cdauth.controller;
 
+import br.com.lwbaleeiro.cdauth.config.JwtService;
 import br.com.lwbaleeiro.cdauth.dto.LoginRequestRequest;
 import br.com.lwbaleeiro.cdauth.dto.LoginRequestResponse;
 import br.com.lwbaleeiro.cdauth.entity.LoginRequest;
@@ -20,13 +21,16 @@ public class LoginRequestController {
 
     private final LoginRequestService loginRequestService;
     private final AuthenticatedUserContext authenticatedUserContext;
+    private final JwtService jwtService;
 
     @PostMapping("/create")
-    public ResponseEntity<LoginRequestResponse> loginRequest(@RequestBody LoginRequestRequest LoginRequest) {
+    public ResponseEntity<LoginRequestResponse> loginRequest(@RequestBody LoginRequestRequest request) {
 
-        LoginRequest loginRequest = loginRequestService.create(LoginRequest.deviceIdRequester());
+        LoginRequest loginRequest = loginRequestService.create(request.deviceIdRequester(), request.deviceNameRequester());
+
         return ResponseEntity.ok(new LoginRequestResponse(
-                loginRequest.getId(), loginRequest.getStatus()));
+                loginRequest.getId(), loginRequest.getStatus(),
+                null));
     }
 
     @GetMapping("/{id}/status")
@@ -34,7 +38,8 @@ public class LoginRequestController {
 
         LoginRequest loginRequest = loginRequestService.getLoginStatus(UUID.fromString(id));
         return ResponseEntity.ok(new LoginRequestResponse(loginRequest.getId(),
-                loginRequest.getStatus()));
+                loginRequest.getStatus(),
+                null));
     }
 
     @PostMapping("/{id}/approve")
@@ -45,9 +50,13 @@ public class LoginRequestController {
         String deviceIdApprove = authenticatedUserContext.getDeviceId(request);
 
         LoginRequest loginRequest = loginRequestService.loginApprove(UUID.fromString(id), deviceIdApprove, user);
-        // TODO: Push com o token (user + deviceIdApprove) para authenticar o novo dispositivo
+        String authToken = jwtService.generateToken(loginRequest.getUser(),
+                loginRequest.getUser().getId(),
+                loginRequest.getDeviceIdRequester());
         
-        return ResponseEntity.ok(new LoginRequestResponse(loginRequest.getId(), loginRequest.getStatus()));
+        return ResponseEntity.ok(new LoginRequestResponse(loginRequest.getId(),
+                loginRequest.getStatus(),
+                authToken));
     }
 
     @PostMapping("/{id}/reject")
@@ -58,6 +67,8 @@ public class LoginRequestController {
         String deviceIdReject = authenticatedUserContext.getDeviceId(request);
 
         LoginRequest loginRequest = loginRequestService.loginReject(UUID.fromString(id), deviceIdReject, user);
-        return ResponseEntity.ok(new LoginRequestResponse(loginRequest.getId(), loginRequest.getStatus()));
+        return ResponseEntity.ok(new LoginRequestResponse(loginRequest.getId(),
+                loginRequest.getStatus(),
+                null));
     }
 }

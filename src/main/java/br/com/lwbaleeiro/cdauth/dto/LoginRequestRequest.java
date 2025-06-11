@@ -1,4 +1,5 @@
 package br.com.lwbaleeiro.cdauth.dto;
 
-public record LoginRequestRequest(String deviceIdRequester) {
+public record LoginRequestRequest(String deviceIdRequester,
+                                  String deviceNameRequester) {
 }
