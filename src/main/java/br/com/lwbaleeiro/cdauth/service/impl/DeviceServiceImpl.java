@@ -1,9 +1,10 @@
-package br.com.lwbaleeiro.cdauth.service;
+package br.com.lwbaleeiro.cdauth.service.impl;
 
 import br.com.lwbaleeiro.cdauth.entity.Device;
 import br.com.lwbaleeiro.cdauth.entity.User;
 import br.com.lwbaleeiro.cdauth.repository.DeviceRepository;
 import br.com.lwbaleeiro.cdauth.repository.UserRepository;
+import br.com.lwbaleeiro.cdauth.service.DeviceService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

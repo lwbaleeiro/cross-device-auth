@@ -1,8 +1,10 @@
-package br.com.lwbaleeiro.cdauth.service;
+package br.com.lwbaleeiro.cdauth.service.impl;
 
 import br.com.lwbaleeiro.cdauth.config.JwtService;
 import br.com.lwbaleeiro.cdauth.entity.User;
 import br.com.lwbaleeiro.cdauth.repository.UserRepository;
+import br.com.lwbaleeiro.cdauth.service.DeviceService;
+import br.com.lwbaleeiro.cdauth.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

@@ -1,4 +1,4 @@
-package br.com.lwbaleeiro.cdauth.service;
+package br.com.lwbaleeiro.cdauth.service.impl;
 
 import br.com.lwbaleeiro.cdauth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
