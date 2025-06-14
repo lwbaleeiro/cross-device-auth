@@ -3,7 +3,7 @@ package br.com.lwbaleeiro.cdauth.service;
 import br.com.lwbaleeiro.cdauth.config.JwtService;
 import br.com.lwbaleeiro.cdauth.entity.User;
 import br.com.lwbaleeiro.cdauth.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -11,20 +11,13 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final DeviceService deviceService;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository, DeviceService deviceService, JwtService jwtService, AuthenticationManager authenticationManager) {
-        this.userRepository = userRepository;
-        this.deviceService = deviceService;
-        this.jwtService = jwtService;
-        this.authenticationManager = authenticationManager;
-    }
 
     @Override
     public String register(User user, String deviceId, String deviceName) {

@@ -3,25 +3,21 @@ package br.com.lwbaleeiro.cdauth.service;
 import br.com.lwbaleeiro.cdauth.entity.LoginRequest;
 import br.com.lwbaleeiro.cdauth.entity.LoginRequestStatus;
 import br.com.lwbaleeiro.cdauth.entity.User;
+import br.com.lwbaleeiro.cdauth.exceptions.LoginRequestNotFoundException;
 import br.com.lwbaleeiro.cdauth.repository.LoginRequestRepository;
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class LoginRequestServiceImpl implements LoginRequestService {
 
     private final LoginRequestRepository loginRequestRepository;
     private final DeviceService deviceService;
-
-    @Autowired
-    public LoginRequestServiceImpl(LoginRequestRepository loginRequestRepository, DeviceService deviceService) {
-        this.loginRequestRepository = loginRequestRepository;
-        this.deviceService = deviceService;
-    }
 
     @Override
     public LoginRequest create(String deviceIdRequester, String deviceNameRequester) {
@@ -39,7 +35,8 @@ public class LoginRequestServiceImpl implements LoginRequestService {
 
     @Override
     public LoginRequest getLoginStatus(UUID id) {
-        return loginRequestRepository.findById(id).orElseThrow();
+        return loginRequestRepository.findById(id).orElseThrow(
+                () -> new LoginRequestNotFoundException("No login request found by given id."));
     }
 
     @Override
@@ -48,16 +45,14 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         LoginRequest loginRequest = loginRequestRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Login request not found by given ID."));
 
+        if (loginRequest.getStatus() != LoginRequestStatus.PENDING) {
+            throw new IllegalStateException("LoginRequest is already resolved.");
+        }
+
         loginRequest.setDeviceIdApprove(deviceIdApprove);
         loginRequest.setUser(user);
         loginRequest.setStatus(LoginRequestStatus.APPROVED);
-
-        /* TODO: Implementar depois
-        * Setar quando vai expirar ? loginRequest.setExpiresAt();
-        * Adicionar validações como:
-        * - Se um LoginRequest já foi aprovado/reprovado nõo poderá ser atualizado novamente.
-        * - Precisa gerar um novo LoginRequest
-        * */
+        loginRequest.setApprovedAt(Instant.now());
 
        deviceService.create(loginRequest.getDeviceIdRequester(),
                loginRequest.getDeviceNameRequester(),
@@ -72,9 +67,14 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         LoginRequest loginRequest = loginRequestRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Login request not found by given ID."));
 
+        if (loginRequest.getStatus() != LoginRequestStatus.PENDING) {
+            throw new IllegalStateException("LoginRequest is already resolved.");
+        }
+
         loginRequest.setDeviceIdApprove(deviceIdReject);
         loginRequest.setUser(user);
         loginRequest.setStatus(LoginRequestStatus.REJECTED);
+        loginRequest.setRejectedAt(Instant.now());
 
         return loginRequestRepository.save(loginRequest);
     }

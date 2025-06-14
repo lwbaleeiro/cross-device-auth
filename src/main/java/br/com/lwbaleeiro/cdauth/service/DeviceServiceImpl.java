@@ -5,8 +5,8 @@ import br.com.lwbaleeiro.cdauth.entity.User;
 import br.com.lwbaleeiro.cdauth.repository.DeviceRepository;
 import br.com.lwbaleeiro.cdauth.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -14,16 +14,11 @@ import java.util.Optional;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class DeviceServiceImpl implements DeviceService {
 
     private final DeviceRepository deviceRepository;
     private final UserRepository userRepository;
-
-    @Autowired
-    public DeviceServiceImpl(DeviceRepository deviceRepository, UserRepository userRepository) {
-        this.deviceRepository = deviceRepository;
-        this.userRepository = userRepository;
-    }
 
     @Override
     public boolean exists(String id, User user) {

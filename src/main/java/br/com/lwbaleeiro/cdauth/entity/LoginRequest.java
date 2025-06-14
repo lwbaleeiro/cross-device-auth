@@ -33,8 +33,14 @@ public class LoginRequest {
     @Column
     private Instant createdAt;
 
+//    @Column
+//    private Instant expiresAt;
+
     @Column
-    private Instant expiresAt;
+    private Instant approvedAt;
+
+    @Column
+    private Instant rejectedAt;
 
     @Column
     private String deviceIdApprove;

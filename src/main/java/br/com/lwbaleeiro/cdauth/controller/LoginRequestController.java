@@ -41,6 +41,7 @@ public class LoginRequestController {
         return ResponseEntity.ok(new LoginRequestResponse(
                 loginRequest.getId(),
                 loginRequest.getStatus(),
+                //TODO: está sempre retornando null em um dos campos
                 null));
     }
 
