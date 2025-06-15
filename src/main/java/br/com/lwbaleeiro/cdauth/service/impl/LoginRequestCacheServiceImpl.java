@@ -1,6 +1,6 @@
 package br.com.lwbaleeiro.cdauth.service.impl;
 
-import br.com.lwbaleeiro.cdauth.dto.LoginRequestCache;
+import br.com.lwbaleeiro.cdauth.dto.LoginRequestResponse;
 import br.com.lwbaleeiro.cdauth.entity.LoginRequest;
 import br.com.lwbaleeiro.cdauth.service.LoginRequestCacheService;
 import lombok.RequiredArgsConstructor;
@@ -18,25 +18,26 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class LoginRequestCacheServiceImpl implements LoginRequestCacheService {
 
-    private final RedisTemplate<String, LoginRequestCache> redisTemplate;
+    private final RedisTemplate<String, LoginRequestResponse> redisTemplate;
     private static final Duration TTL = Duration.ofMinutes(2);
 
     @Override
     public void cacheLoginRequest(UUID loginRequestId, LoginRequest loginRequest) {
         String key = "login_request: " + loginRequestId.toString();
 
-        LoginRequestCache cache = new LoginRequestCache(
+        LoginRequestResponse cache = new LoginRequestResponse(
                 loginRequest.getId(),
                 loginRequest.getStatus().name(),
                 Instant.now().plus(Duration.ofMinutes(2)),
-                loginRequest.getUser() != null ? loginRequest.getUser().getId().toString() : null
+                loginRequest.getUser() != null ? loginRequest.getUser().getId() : null,
+                null
         );
 
         redisTemplate.opsForValue().set(key, cache, TTL);
     }
 
     @Override
-    public Optional<LoginRequestCache> getLoginRequest(UUID loginRequestId) {
+    public Optional<LoginRequestResponse> getLoginRequest(UUID loginRequestId) {
         String key = "login_request:" + loginRequestId;
         return Optional.ofNullable(redisTemplate.opsForValue().get(key));
     }

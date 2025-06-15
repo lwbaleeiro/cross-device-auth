@@ -1,6 +1,6 @@
 package br.com.lwbaleeiro.cdauth.config;
 
-import br.com.lwbaleeiro.cdauth.dto.LoginRequestCache;
+import br.com.lwbaleeiro.cdauth.dto.LoginRequestResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -18,9 +18,9 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, LoginRequestCache> redisTemplate() {
+    public RedisTemplate<String, LoginRequestResponse> redisTemplate() {
 
-        RedisTemplate<String, LoginRequestCache> template = new RedisTemplate<>();
+        RedisTemplate<String, LoginRequestResponse> template = new RedisTemplate<>();
         template.setConnectionFactory(redisConnectionFactory());
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());

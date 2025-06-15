@@ -1,10 +1,11 @@
 package br.com.lwbaleeiro.cdauth.dto;
 
-import br.com.lwbaleeiro.cdauth.entity.LoginRequestStatus;
-
+import java.time.Instant;
 import java.util.UUID;
 
-public record LoginRequestResponse(UUID idLoginRequest,
-                                   LoginRequestStatus status,
+public record LoginRequestResponse(UUID id,
+                                   String status,
+                                   Instant expiresAt,
+                                   UUID userId,
                                    String authToken) {
 }

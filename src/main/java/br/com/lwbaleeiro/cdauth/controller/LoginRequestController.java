@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.UUID;
 
 @RestController
@@ -21,28 +23,22 @@ public class LoginRequestController {
 
     private final LoginRequestService loginRequestService;
     private final AuthenticatedUserContext authenticatedUserContext;
-    private final JwtService jwtService;
 
     @PostMapping("/create")
     public ResponseEntity<LoginRequestResponse> loginRequest(@RequestBody LoginRequestRequest request) {
 
-        LoginRequest loginRequest = loginRequestService.create(request.deviceIdRequester(), request.deviceNameRequester());
+        LoginRequestResponse loginRequestResponse = loginRequestService.create(
+                request.deviceIdRequester(), request.deviceNameRequester()
+        );
 
-        return ResponseEntity.ok(new LoginRequestResponse(
-                loginRequest.getId(),
-                loginRequest.getStatus(),
-                null));
+        return ResponseEntity.ok(loginRequestResponse);
     }
 
     @GetMapping("/{id}/status")
     public ResponseEntity<LoginRequestResponse> loginStatus(@PathVariable("id") String id) {
 
-        LoginRequest loginRequest = loginRequestService.getLoginStatus(UUID.fromString(id));
-        return ResponseEntity.ok(new LoginRequestResponse(
-                loginRequest.getId(),
-                loginRequest.getStatus(),
-                //TODO: está sempre retornando null em um dos campos
-                null));
+        LoginRequestResponse loginRequestResponse = loginRequestService.getLoginStatus(UUID.fromString(id));
+        return ResponseEntity.ok(loginRequestResponse);
     }
 
     @PostMapping("/{id}/approve")
@@ -52,15 +48,11 @@ public class LoginRequestController {
         User user = authenticatedUserContext.getAuthenticatedUser();
         String deviceIdApprove = authenticatedUserContext.getDeviceId(request);
 
-        LoginRequest loginRequest = loginRequestService.loginApprove(UUID.fromString(id), deviceIdApprove, user);
-        String authToken = jwtService.generateToken(loginRequest.getUser(),
-                loginRequest.getUser().getId(),
-                loginRequest.getDeviceIdRequester());
+        LoginRequestResponse loginRequestResponse = loginRequestService.loginApprove(
+                UUID.fromString(id), deviceIdApprove, user
+        );
         
-        return ResponseEntity.ok(new LoginRequestResponse(
-                loginRequest.getId(),
-                loginRequest.getStatus(),
-                authToken));
+        return ResponseEntity.ok(loginRequestResponse);
     }
 
     @PostMapping("/{id}/reject")
@@ -70,10 +62,10 @@ public class LoginRequestController {
         User user = authenticatedUserContext.getAuthenticatedUser();
         String deviceIdReject = authenticatedUserContext.getDeviceId(request);
 
-        LoginRequest loginRequest = loginRequestService.loginReject(UUID.fromString(id), deviceIdReject, user);
-        return ResponseEntity.ok(new LoginRequestResponse(
-                loginRequest.getId(),
-                loginRequest.getStatus(),
-                null));
+        LoginRequestResponse loginRequestResponse = loginRequestService.loginReject(
+                UUID.fromString(id), deviceIdReject, user
+        );
+
+        return ResponseEntity.ok(loginRequestResponse);
     }
 }

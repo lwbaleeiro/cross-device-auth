@@ -1,8 +1,8 @@
 package br.com.lwbaleeiro.cdauth.service.impl;
 
+import br.com.lwbaleeiro.cdauth.config.JwtService;
 import br.com.lwbaleeiro.cdauth.controller.LoginRequestEventPublisher;
-import br.com.lwbaleeiro.cdauth.dto.LoginRequestCache;
-import br.com.lwbaleeiro.cdauth.dto.LoginRequestRequest;
+import br.com.lwbaleeiro.cdauth.dto.LoginRequestResponse;
 import br.com.lwbaleeiro.cdauth.entity.LoginRequest;
 import br.com.lwbaleeiro.cdauth.entity.LoginRequestStatus;
 import br.com.lwbaleeiro.cdauth.entity.User;
@@ -27,9 +27,10 @@ public class LoginRequestServiceImpl implements LoginRequestService {
     private final DeviceService deviceService;
     private final LoginRequestEventPublisher eventPublisher;
     private final LoginRequestCacheService cacheService;
+    private final JwtService jwtService;
 
     @Override
-    public LoginRequest create(String deviceIdRequester, String deviceNameRequester) {
+    public LoginRequestResponse create(String deviceIdRequester, String deviceNameRequester) {
 
         LoginRequest loginRequest = LoginRequest
                 .builder()
@@ -41,19 +42,20 @@ public class LoginRequestServiceImpl implements LoginRequestService {
 
         LoginRequest saved = loginRequestRepository.save(loginRequest);
         cacheService.cacheLoginRequest(loginRequest.getId(), loginRequest);
-        return saved;
+        return mapToDTO(saved, null);
     }
 
     @Override
-    public LoginRequest getLoginStatus(UUID id) {
+    public LoginRequestResponse getLoginStatus(UUID id) {
         return cacheService.getLoginRequest(id).orElseGet(
-                () ->  loginRequestRepository.findById(id).orElseThrow(
-                        () -> new LoginRequestNotFoundException("No login request found by given id."))
+                () ->  mapToDTO(loginRequestRepository.findById(id).orElseThrow(
+                        () -> new LoginRequestNotFoundException("No login request found by given id.")),
+                        null)
         );
     }
 
     @Override
-    public LoginRequest loginApprove(UUID id, String deviceIdApprove, User user) {
+    public LoginRequestResponse loginApprove(UUID id, String deviceIdApprove, User user) {
 
         LoginRequest loginRequest = loginRequestRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Login request not found by given ID."));
@@ -75,11 +77,15 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         eventPublisher.sendUpdate(saved.getId(), saved.getStatus());
         cacheService.cacheLoginRequest(loginRequest.getId(), loginRequest);
 
-        return saved;
+        String authToken = jwtService.generateToken(saved.getUser(),
+                saved.getUser().getId(),
+                saved.getDeviceIdRequester());
+
+        return mapToDTO(saved, authToken);
     }
 
     @Override
-    public LoginRequest loginReject(UUID id, String deviceIdReject, User user) {
+    public LoginRequestResponse loginReject(UUID id, String deviceIdReject, User user) {
 
         LoginRequest loginRequest = loginRequestRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Login request not found by given ID."));
@@ -97,15 +103,16 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         eventPublisher.sendUpdate(saved.getId(), saved.getStatus());
         cacheService.cacheLoginRequest(loginRequest.getId(), loginRequest);
 
-        return saved;
+        return mapToDTO(saved, null);
     }
 
-    private LoginRequestCache mapToDTO(LoginRequest loginRequest) {
-        return new LoginRequestCache(
+    private LoginRequestResponse mapToDTO(LoginRequest loginRequest, String token) {
+        return new LoginRequestResponse(
                 loginRequest.getId(),
                 loginRequest.getStatus().name(),
                 Instant.now().plus(Duration.ofMinutes(2)),
-                loginRequest.getUser() != null ? loginRequest.getUser().getId().toString() : null
+                loginRequest.getUser() != null ? loginRequest.getUser().getId() : null,
+                token
         );
     }
 }
