@@ -74,6 +74,19 @@ public class LoginRequestServiceImpl implements LoginRequestService {
             throw new IllegalStateException("LoginRequest is already resolved.");
         }
 
+       deviceService.getByDeviceIdAndUser(deviceIdApprove, user).orElseThrow(
+               () -> new EntityNotFoundException("This device is not registered for the current user."));
+
+        if (loginRequest.getUser() != null && !loginRequest.getUser().getId().equals(user.getId())) {
+            //TODO: mudar exception
+            throw new IllegalStateException("You cannot approve or reject login requests from another user.");
+        }
+
+        if (loginRequest.getDeviceIdRequester().equals(deviceIdApprove)) {
+            //TODO: mudar exception
+            throw new IllegalStateException("Cannot approve login from the same device that requested it.");
+        }
+
         loginRequest.setDeviceIdApprove(deviceIdApprove);
         loginRequest.setUser(user);
         loginRequest.setStatus(LoginRequestStatus.APPROVED);
@@ -104,6 +117,14 @@ public class LoginRequestServiceImpl implements LoginRequestService {
 
         if (loginRequest.getStatus() != LoginRequestStatus.PENDING) {
             throw new IllegalStateException("LoginRequest is already resolved.");
+        }
+
+        deviceService.getByDeviceIdAndUser(deviceIdReject, user).orElseThrow(
+                () -> new EntityNotFoundException("This device is not registered for the current user."));
+
+        if (loginRequest.getUser() != null && !loginRequest.getUser().getId().equals(user.getId())) {
+            //TODO: mudar exception
+            throw new IllegalStateException("You cannot approve or reject login requests from another user.");
         }
 
         loginRequest.setDeviceIdApprove(deviceIdReject);

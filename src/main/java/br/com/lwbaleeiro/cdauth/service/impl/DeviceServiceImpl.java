@@ -72,4 +72,9 @@ public class DeviceServiceImpl implements DeviceService {
         deviceRepository.save(device);
         log.debug("Updating lastUsedAt for deviceId: {} and user: {}", deviceId, userEmail);
     }
+
+    @Override
+    public Optional<Device> getByDeviceIdAndUser(String deviceIdApprove, User user) {
+        return deviceRepository.findByDeviceIdAndUser(deviceIdApprove, user);
+    }
 }
