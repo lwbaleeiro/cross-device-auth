@@ -33,8 +33,8 @@ public class LoginRequest {
     @Column
     private Instant createdAt;
 
-//    @Column
-//    private Instant expiresAt;
+    @Column
+    private Instant expiresAt;
 
     @Column
     private Instant approvedAt;

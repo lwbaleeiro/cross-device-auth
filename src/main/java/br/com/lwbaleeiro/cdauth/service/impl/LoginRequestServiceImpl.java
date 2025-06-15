@@ -31,12 +31,15 @@ public class LoginRequestServiceImpl implements LoginRequestService {
 
     @Override
     public LoginRequestResponse create(String deviceIdRequester, String deviceNameRequester) {
+        Instant createdAt = Instant.now();
+        Instant expiresAt = createdAt.plus(Duration.ofMinutes(2));
 
         LoginRequest loginRequest = LoginRequest
                 .builder()
                 .deviceIdRequester(deviceIdRequester)
                 .deviceNameRequester(deviceNameRequester)
-                .createdAt(Instant.now())
+                .createdAt(createdAt)
+                .expiresAt(expiresAt)
                 .status(LoginRequestStatus.PENDING)
                 .build();
 
@@ -47,11 +50,16 @@ public class LoginRequestServiceImpl implements LoginRequestService {
 
     @Override
     public LoginRequestResponse getLoginStatus(UUID id) {
-        return cacheService.getLoginRequest(id).orElseGet(
-                () ->  mapToDTO(loginRequestRepository.findById(id).orElseThrow(
-                        () -> new LoginRequestNotFoundException("No login request found by given id.")),
+
+        LoginRequestResponse loginRequestResponse = cacheService.getLoginRequest(id).orElseGet(
+                () -> mapToDTO(loginRequestRepository.findById(id).orElseThrow(
+                                () -> new LoginRequestNotFoundException("No login request found by given id.")),
                         null)
         );
+
+        validateExpiration(loginRequestResponse.expiresAt());
+
+        return loginRequestResponse;
     }
 
     @Override
@@ -59,6 +67,8 @@ public class LoginRequestServiceImpl implements LoginRequestService {
 
         LoginRequest loginRequest = loginRequestRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Login request not found by given ID."));
+
+        validateExpiration(loginRequest.getExpiresAt());
 
         if (loginRequest.getStatus() != LoginRequestStatus.PENDING) {
             throw new IllegalStateException("LoginRequest is already resolved.");
@@ -90,6 +100,8 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         LoginRequest loginRequest = loginRequestRepository.findById(id).orElseThrow(
                 () -> new EntityNotFoundException("Login request not found by given ID."));
 
+        validateExpiration(loginRequest.getExpiresAt());
+
         if (loginRequest.getStatus() != LoginRequestStatus.PENDING) {
             throw new IllegalStateException("LoginRequest is already resolved.");
         }
@@ -104,6 +116,12 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         cacheService.cacheLoginRequest(loginRequest.getId(), loginRequest);
 
         return mapToDTO(saved, null);
+    }
+
+    private void validateExpiration(Instant expiresAt) {
+        if (expiresAt != null && expiresAt.isBefore(Instant.now())) {
+            throw new IllegalStateException("Login request has expired.");
+        }
     }
 
     private LoginRequestResponse mapToDTO(LoginRequest loginRequest, String token) {
