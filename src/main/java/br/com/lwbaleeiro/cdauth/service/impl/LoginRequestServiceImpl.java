@@ -6,12 +6,14 @@ import br.com.lwbaleeiro.cdauth.dto.LoginRequestResponse;
 import br.com.lwbaleeiro.cdauth.entity.LoginRequest;
 import br.com.lwbaleeiro.cdauth.entity.LoginRequestStatus;
 import br.com.lwbaleeiro.cdauth.entity.User;
+import br.com.lwbaleeiro.cdauth.exceptions.InvalidDeviceException;
 import br.com.lwbaleeiro.cdauth.exceptions.LoginRequestNotFoundException;
 import br.com.lwbaleeiro.cdauth.repository.LoginRequestRepository;
 import br.com.lwbaleeiro.cdauth.service.DeviceService;
 import br.com.lwbaleeiro.cdauth.service.LoginRequestCacheService;
 import br.com.lwbaleeiro.cdauth.service.LoginRequestService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,7 @@ public class LoginRequestServiceImpl implements LoginRequestService {
 
         LoginRequest saved = loginRequestRepository.save(loginRequest);
         cacheService.cacheLoginRequest(loginRequest.getId(), loginRequest);
+
         return mapToDTO(saved, null);
     }
 
@@ -78,13 +81,11 @@ public class LoginRequestServiceImpl implements LoginRequestService {
                () -> new EntityNotFoundException("This device is not registered for the current user."));
 
         if (loginRequest.getUser() != null && !loginRequest.getUser().getId().equals(user.getId())) {
-            //TODO: mudar exception
-            throw new IllegalStateException("You cannot approve or reject login requests from another user.");
+            throw new InvalidDeviceException("You cannot approve or reject login requests from another user.");
         }
 
         if (loginRequest.getDeviceIdRequester().equals(deviceIdApprove)) {
-            //TODO: mudar exception
-            throw new IllegalStateException("Cannot approve login from the same device that requested it.");
+            throw new InvalidDeviceException("Cannot approve login from the same device that requested it.");
         }
 
         loginRequest.setDeviceIdApprove(deviceIdApprove);
@@ -104,7 +105,11 @@ public class LoginRequestServiceImpl implements LoginRequestService {
                 saved.getUser().getId(),
                 saved.getDeviceIdRequester());
 
-        return mapToDTO(saved, authToken);
+        try {
+            return mapToDTO(saved, null);
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("This login request was already processed.");
+        }
     }
 
     @Override
@@ -123,8 +128,7 @@ public class LoginRequestServiceImpl implements LoginRequestService {
                 () -> new EntityNotFoundException("This device is not registered for the current user."));
 
         if (loginRequest.getUser() != null && !loginRequest.getUser().getId().equals(user.getId())) {
-            //TODO: mudar exception
-            throw new IllegalStateException("You cannot approve or reject login requests from another user.");
+            throw new InvalidDeviceException("You cannot approve or reject login requests from another user.");
         }
 
         loginRequest.setDeviceIdApprove(deviceIdReject);
@@ -136,7 +140,11 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         eventPublisher.sendUpdate(saved.getId(), saved.getStatus());
         cacheService.cacheLoginRequest(loginRequest.getId(), loginRequest);
 
-        return mapToDTO(saved, null);
+        try {
+            return mapToDTO(saved, null);
+        } catch (OptimisticLockException e) {
+            throw new IllegalStateException("This login request was already processed.");
+        }
     }
 
     private void validateExpiration(Instant expiresAt) {
@@ -149,7 +157,7 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         return new LoginRequestResponse(
                 loginRequest.getId(),
                 loginRequest.getStatus().name(),
-                Instant.now().plus(Duration.ofMinutes(2)),
+                loginRequest.getExpiresAt(),
                 loginRequest.getUser() != null ? loginRequest.getUser().getId() : null,
                 token
         );

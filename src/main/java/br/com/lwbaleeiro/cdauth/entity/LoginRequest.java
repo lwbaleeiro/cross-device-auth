@@ -48,4 +48,7 @@ public class LoginRequest {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Version
+    private Long version;
 }
