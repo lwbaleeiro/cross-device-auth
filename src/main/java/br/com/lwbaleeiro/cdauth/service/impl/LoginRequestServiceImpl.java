@@ -33,6 +33,11 @@ public class LoginRequestServiceImpl implements LoginRequestService {
 
     @Override
     public LoginRequestResponse create(String deviceIdRequester, String deviceNameRequester) {
+
+        if (deviceIdRequester == null) {
+            throw new IllegalArgumentException("deviceIdRequester cannot be null");
+        }
+
         Instant createdAt = Instant.now();
         Instant expiresAt = createdAt.plus(Duration.ofMinutes(2));
 
@@ -105,6 +110,8 @@ public class LoginRequestServiceImpl implements LoginRequestService {
                 saved.getUser().getId(),
                 saved.getDeviceIdRequester());
 
+        cacheService.deleteLoginRequest(saved.getId());
+
         try {
             return mapToDTO(saved, null);
         } catch (OptimisticLockException e) {
@@ -139,6 +146,8 @@ public class LoginRequestServiceImpl implements LoginRequestService {
         LoginRequest saved = loginRequestRepository.save(loginRequest);
         eventPublisher.sendUpdate(saved.getId(), saved.getStatus());
         cacheService.cacheLoginRequest(loginRequest.getId(), loginRequest);
+
+        cacheService.deleteLoginRequest(saved.getId());
 
         try {
             return mapToDTO(saved, null);
