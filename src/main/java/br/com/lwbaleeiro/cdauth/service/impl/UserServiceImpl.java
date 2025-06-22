@@ -25,7 +25,6 @@ public class UserServiceImpl implements UserService {
     public String register(User user, String deviceId, String deviceName) {
 
         if (userRepository.existsByEmail(user.getEmail())) {
-            // TODO: Mudar para custom exception
             throw new RuntimeException("This e-mail is already been taken");
         }
 
@@ -42,7 +41,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public String authentication(String email, String password, String deviceId, String deviceName) {
-        // TODO: Mudar para custom exception
         var user = userRepository.findByEmail(email).orElseThrow();
 
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));

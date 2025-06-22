@@ -45,7 +45,6 @@ public class DeviceServiceImpl implements DeviceService {
     public Device create(String id, String name, User user) {
 
         if (deviceRepository.findByDeviceIdAndUser(id, user).isPresent()) {
-            // TODO: Mudar para custom exception
             throw new RuntimeException("This device already exists with this user.");
         }
 
